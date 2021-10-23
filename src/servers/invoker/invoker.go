@@ -2,25 +2,61 @@ package invoker
 
 import (
 	"errors"
+	"go-command-pattern/src/servers"
 	"go-command-pattern/src/servers/actions"
 )
 
-var initializeError = errors.New("commander not defined, initialize the invoker first")
+var initializeError = errors.New("server not defined, initialize the invoker first")
 
-type Invoker struct {
-	commander actions.Commander
+type Server struct {
+	server servers.Interface
 }
 
-func (i *Invoker) Initialize(commander actions.Commander) {
-	i.commander = commander
+func (i *Server) Initialize(server servers.Interface) {
+	i.server = server
 }
 
-func (i *Invoker) Run() error {
+func (i *Server) Up() error {
 	var errorToReturn error
 
-	if i.commander != nil {
-		errorToReturn = i.commander.ExecuteRoutine()
-		i.commander.TearDown()
+	if i.server != nil {
+		desiredCommander := new(actions.PowerOn)
+		//ToDo: adding a command manager to avoid repetition code
+		desiredCommander.InitializeServer(i.server)
+		errorToReturn = desiredCommander.ExecuteRoutine()
+		desiredCommander.TearDown()
+	} else {
+		errorToReturn = initializeError
+	}
+
+	return errorToReturn
+}
+
+func (i *Server) Down() error {
+	var errorToReturn error
+
+	if i.server != nil {
+		desiredCommander := new(actions.PowerOff)
+		//ToDo: adding a command manager to avoid repetition code
+		desiredCommander.InitializeServer(i.server)
+		errorToReturn = desiredCommander.ExecuteRoutine()
+		desiredCommander.TearDown()
+	} else {
+		errorToReturn = initializeError
+	}
+
+	return errorToReturn
+}
+
+func (i *Server) Reboot() error {
+	var errorToReturn error
+
+	if i.server != nil {
+		desiredCommander := new(actions.Reboot)
+		//ToDo: adding a command manager to avoid repetition code
+		desiredCommander.InitializeServer(i.server)
+		errorToReturn = desiredCommander.ExecuteRoutine()
+		desiredCommander.TearDown()
 	} else {
 		errorToReturn = initializeError
 	}
